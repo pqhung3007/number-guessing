@@ -13,6 +13,9 @@ const difficulties: Record<number, Difficulty> = {
   3: { label: "Hard", chances: 3 },
 };
 
+// high scores by levels
+const highScores: Record<string, number> = {};
+
 function generateHint(guess: number, target: number): string {
   const hints = [];
   const distance = target - guess;
@@ -70,23 +73,35 @@ function playGame() {
   let attempts = 0;
   let won = false;
 
+  const startTime = Date.now();
+
   while (attempts < difficulty.chances) {
     const guess = readlineSync.questionInt(
       `Attempt ${attempts + 1}/${difficulty.chances}: Enter your guess: `,
     );
     attempts++;
 
-    if (guess < targetNumber) {
-      console.log(`📉 Too low! The number is greater than ${guess}.`);
-    } else if (guess > targetNumber) {
-      console.log(`📈 Too high! The number is less than ${guess}.`);
-    } else {
+    if (guess === targetNumber) {
+      const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
       console.log(
-        `🎉 Congratulations! You guessed the correct number in ${attempts} attempts!`,
+        `🎉 Congratulations! You guessed the correct number in ${attempts} attempts! Time taken: ${timeTaken}s.`,
       );
+
+      // update high scores
+      const currentHighScores = highScores[difficulty.label] || Infinity;
+      if (!currentHighScores || attempts < currentHighScores) {
+        highScores[difficulty.label] = attempts;
+        console.log(
+          `🏆 New high score for ${difficulty.label} difficulty: ${attempts} attempt(s)!`,
+        );
+      }
 
       won = true;
       break;
+    } else if (guess > targetNumber) {
+      console.log(`📈 Too high! The number is less than ${guess}.`);
+    } else {
+      console.log(`📉 Too low! The number is greater than ${guess}.`);
     }
 
     // show hints every 2 incorrect guesses
@@ -109,6 +124,10 @@ function playGame() {
     playGame();
   } else {
     console.log("\n👋 Thanks for playing! Goodbye!");
+  }
+  console.log("\n🏅 High Scores:");
+  for (const key in highScores) {
+    console.log(`- ${key}: ${highScores[key]} attempt(s)`);
   }
 }
 
